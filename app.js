@@ -1,23 +1,6 @@
-const PRIZES = [
-  "€ 100",
-  "€ 150",
-  "€ 200",
-  "€ 250",
-  "€ 300",
-  "€ 500",
-  "€ 750",
-  "€ 1 000",
-  "€ 1 500",
-  "€ 2 500",
-  "€ 5 000",
-  "€ 10 000",
-  "€ 20 000",
-  "€ 50 000",
-  "€ 100 000"
-];
-
 const LETTERS = ["А", "Б", "В", "Г"];
 const TIME_LIMIT = 60;
+const TOTAL_LEVELS = 15;
 
 const RAW_QUESTIONS = `
 През 1666 г., принуден да се оттегли от Кеймбридж заради чумната епидемия, младият английски учен Исак Нютон прекарва месеци в уединение. По-късно именно този период ще бъде наречен неговата annus mirabilis – година на чудесата. Тогава той прави огромни крачки в две области, които ще променят науката завинаги. Кои са те?
@@ -207,7 +190,7 @@ const els = {
   timeLeft: document.querySelector("#timeLeft"),
   timer: document.querySelector("#timer"),
   timerRing: document.querySelector(".timer-ring"),
-  ladder: document.querySelector("#moneyLadder"),
+  ladder: document.querySelector("#levelLadder"),
   questionNumber: document.querySelector("#questionNumber"),
   helperPanel: document.querySelector("#helperPanel"),
   fifty: document.querySelector("#fiftyLifeline"),
@@ -216,7 +199,7 @@ const els = {
   resultScreen: document.querySelector("#resultScreen"),
   resultKicker: document.querySelector("#resultKicker"),
   resultTitle: document.querySelector("#resultTitle"),
-  resultPrize: document.querySelector("#resultPrize"),
+  resultProgress: document.querySelector("#resultProgress"),
   resultMessage: document.querySelector("#resultMessage"),
   resultRestartButton: document.querySelector("#resultRestartButton"),
   soundToggle: document.querySelector("#soundToggle")
@@ -614,12 +597,12 @@ function buildQuestionSet() {
 }
 
 function renderLadder() {
-  els.ladder.innerHTML = PRIZES.map((prize, index) => {
+  els.ladder.innerHTML = Array.from({ length: TOTAL_LEVELS }, (_, index) => {
     const level = index + 1;
     return `
       <li data-level="${level}">
         <span class="level-number">${level}</span>
-        <span class="level-prize">${prize}</span>
+        <span class="level-label">Въпрос</span>
       </li>
     `;
   }).join("");
@@ -742,7 +725,7 @@ function selectAnswer(index) {
 function continueGame() {
   if (!state.selected) return;
 
-  if (state.failed || state.level >= 15) {
+  if (state.failed || state.level >= TOTAL_LEVELS) {
     showResult();
     return;
   }
@@ -753,12 +736,11 @@ function continueGame() {
 function showResult() {
   audio.stopAmbient();
   audio.play("final");
-  const reachedPrize = state.level > 0 ? PRIZES[state.level - 1] : "€ 0";
-  const wonAll = state.level >= 15;
+  const wonAll = state.level >= TOTAL_LEVELS;
   const title = getResultTitle();
   els.resultKicker.textContent = wonAll ? "Финал" : "Край на играта";
   els.resultTitle.textContent = title;
-  els.resultPrize.textContent = reachedPrize;
+  els.resultProgress.textContent = `${state.level} / ${TOTAL_LEVELS}`;
   els.resultMessage.textContent = getResultMessage();
   els.resultScreen.classList.add("is-visible");
   els.resultScreen.setAttribute("aria-hidden", "false");

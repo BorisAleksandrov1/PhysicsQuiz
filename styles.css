@@ -315,11 +315,12 @@ button {
   font-size: clamp(0.75rem, 1.2vw, 1.1rem);
 }
 
-.ladder .level-prize {
+.ladder .level-label {
   grid-column: 2;
   color: var(--gold);
   font-size: clamp(0.78rem, 1.35vw, 1.18rem);
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .ladder li.active {
@@ -332,7 +333,7 @@ button {
 }
 
 .ladder li.active .level-number,
-.ladder li.active .level-prize {
+.ladder li.active .level-label {
   color: #fff8d8;
 }
 
@@ -672,7 +673,7 @@ button {
   text-transform: uppercase;
 }
 
-#resultPrize {
+#resultProgress {
   display: block;
   margin-bottom: 16px;
   color: var(--gold);
