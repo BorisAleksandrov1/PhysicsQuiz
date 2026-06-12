@@ -806,7 +806,7 @@ function buildQuestionSet() {
   const set = QUESTION_SETS[setIndex];
   state.activeSetIndex = setIndex;
 
-  return set.questions.slice(0, TOTAL_LEVELS).map((question, index) => ({
+  return set.questions.slice(0, TOTAL_LEVELS).reverse().map((question, index) => ({
     ...question,
     id: `${setIndex}-${index}`,
     answers: [...question.answers]
