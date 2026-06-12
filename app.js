@@ -811,8 +811,7 @@ function advanceQuestionSet() {
   setStoredSetIndex(state.activeSetIndex + 1);
 }
 
-function buildQuestionSet() {
-  const setIndex = getStoredSetIndex();
+function buildQuestionSet(setIndex = getStoredSetIndex()) {
   const set = QUESTION_SETS[setIndex];
   state.activeSetIndex = setIndex;
 
@@ -824,11 +823,16 @@ function buildQuestionSet() {
 }
 
 function startGame() {
+  startGameAtSet(getStoredSetIndex());
+}
+
+function startGameAtSet(setIndex) {
+  setStoredSetIndex(setIndex);
   audio.unlock();
   audio.play("intro");
   audio.startAmbient();
   clearPhoneTimer();
-  state.questions = buildQuestionSet();
+  state.questions = buildQuestionSet(setIndex);
   state.level = 0;
   state.selected = false;
   state.failed = false;
@@ -1059,6 +1063,32 @@ function clearAnswerRevealTimer() {
   state.answerRevealTimerId = null;
 }
 
+function isStartVisible() {
+  return els.startScreen.classList.contains("is-visible");
+}
+
+function isResultVisible() {
+  return els.resultScreen.classList.contains("is-visible");
+}
+
+function continueOrStartNext() {
+  if (isPhoneTimerActive()) return;
+
+  if (isStartVisible() || isResultVisible()) {
+    startGame();
+    return;
+  }
+
+  if (!els.continueButton.disabled) {
+    continueGame();
+  }
+}
+
+function resetCurrentGame() {
+  const setIndex = isStartVisible() && !isResultVisible() ? getStoredSetIndex() : state.activeSetIndex;
+  startGameAtSet(setIndex);
+}
+
 function handleKeyboardShortcuts(event) {
   if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
 
@@ -1070,6 +1100,18 @@ function handleKeyboardShortcuts(event) {
     return;
   }
 
+  if (event.code === "Enter") {
+    event.preventDefault();
+    continueOrStartNext();
+    return;
+  }
+
+  if (event.code === "KeyR") {
+    event.preventDefault();
+    resetCurrentGame();
+    return;
+  }
+
   const answerIndex = ANSWER_SHORTCUTS.get(event.code) ?? ANSWER_SHORTCUTS.get(event.key.toLowerCase());
   if (answerIndex === undefined) return;
 
@@ -1078,8 +1120,8 @@ function handleKeyboardShortcuts(event) {
     state.selected ||
     state.resultShown ||
     !state.questions.length ||
-    els.startScreen.classList.contains("is-visible") ||
-    els.resultScreen.classList.contains("is-visible");
+    isStartVisible() ||
+    isResultVisible();
 
   if (gameBlocked) return;
 
