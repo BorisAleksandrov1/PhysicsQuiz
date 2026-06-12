@@ -966,17 +966,6 @@ function useHost() {
   state.usedLifelines.host = true;
   els.host.disabled = true;
   els.host.classList.add("used");
-
-  const question = currentQuestion();
-  const title = document.createElement("h3");
-  const message = document.createElement("p");
-
-  title.textContent = "Водещият казва:";
-  message.textContent = `Бих насочил вниманието си към ${LETTERS[question.correct]}: ${question.answers[question.correct]}.`;
-
-  els.helperPanel.innerHTML = "";
-  els.helperPanel.append(title, message);
-  els.helperPanel.classList.add("is-visible");
 }
 
 function usePhone() {
