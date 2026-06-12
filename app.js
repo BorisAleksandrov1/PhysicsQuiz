@@ -1,9 +1,17 @@
 const LETTERS = ["А", "Б", "В", "Г"];
 const ANSWER_SHORTCUTS = new Map([
+  ["KeyA", 0],
+  ["KeyS", 1],
+  ["KeyD", 2],
+  ["KeyF", 3],
   ["a", 0],
   ["s", 1],
   ["d", 2],
-  ["f", 3]
+  ["f", 3],
+  ["а", 0],
+  ["с", 1],
+  ["д", 2],
+  ["ф", 3]
 ]);
 const ANSWER_REVEAL_DELAY_MS = 900;
 const TOTAL_LEVELS = 8;
@@ -1062,7 +1070,7 @@ function handleKeyboardShortcuts(event) {
     return;
   }
 
-  const answerIndex = ANSWER_SHORTCUTS.get(event.key.toLowerCase());
+  const answerIndex = ANSWER_SHORTCUTS.get(event.code) ?? ANSWER_SHORTCUTS.get(event.key.toLowerCase());
   if (answerIndex === undefined) return;
 
   const gameBlocked =
