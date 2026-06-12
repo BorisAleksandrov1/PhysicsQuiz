@@ -369,6 +369,13 @@ button {
   font-size: clamp(0.74rem, 1.16vw, 1.04rem);
 }
 
+.answer.selected {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 33%),
+    linear-gradient(90deg, #8d5f00, #ffd45a 50%, #8d5f00);
+  color: #fff;
+}
+
 .answer.correct {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 33%),

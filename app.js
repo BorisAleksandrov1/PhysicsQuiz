@@ -5,6 +5,7 @@ const ANSWER_SHORTCUTS = new Map([
   ["d", 2],
   ["f", 3]
 ]);
+const ANSWER_REVEAL_DELAY_MS = 900;
 const TOTAL_LEVELS = 8;
 const PHONE_TIMER_SECONDS = 60;
 const SET_STORAGE_KEY = "staniFizikQuestionSetIndex";
@@ -352,6 +353,7 @@ const state = {
   selected: false,
   failed: false,
   resultShown: false,
+  answerRevealTimerId: null,
   phoneTimerId: null,
   phoneTimerStartedAt: 0,
   usedLifelines: {
@@ -843,6 +845,7 @@ function currentQuestion() {
 }
 
 function showQuestion() {
+  clearAnswerRevealTimer();
   const question = currentQuestion();
   state.selected = false;
   state.failed = false;
@@ -877,23 +880,35 @@ function selectAnswer(index) {
   audio.play("select");
 
   els.answers.querySelectorAll(".answer").forEach((button) => {
-    const buttonIndex = Number(button.dataset.index);
     button.disabled = true;
     button.classList.remove("hidden-answer");
-    if (buttonIndex === question.correct) button.classList.add("correct");
-    if (buttonIndex === index && !isCorrect) button.classList.add("wrong");
   });
 
-  if (isCorrect) {
-    state.level += 1;
-    state.failed = false;
-    setTimeout(() => audio.play("correct"), 260);
-  } else {
-    state.failed = true;
-    setTimeout(() => audio.play("wrong"), 260);
-  }
+  const selectedButton = els.answers.querySelector(`.answer[data-index="${index}"]`);
+  if (selectedButton) selectedButton.classList.add("selected");
 
-  els.continueButton.disabled = false;
+  clearAnswerRevealTimer();
+  state.answerRevealTimerId = window.setTimeout(() => {
+    state.answerRevealTimerId = null;
+
+    els.answers.querySelectorAll(".answer").forEach((button) => {
+      const buttonIndex = Number(button.dataset.index);
+      button.classList.remove("selected");
+      if (buttonIndex === question.correct) button.classList.add("correct");
+      if (buttonIndex === index && !isCorrect) button.classList.add("wrong");
+    });
+
+    if (isCorrect) {
+      state.level += 1;
+      state.failed = false;
+      audio.play("correct");
+    } else {
+      state.failed = true;
+      audio.play("wrong");
+    }
+
+    els.continueButton.disabled = false;
+  }, ANSWER_REVEAL_DELAY_MS);
 }
 
 function continueGame() {
@@ -911,6 +926,7 @@ function showResult() {
   if (state.resultShown) return;
   state.resultShown = true;
 
+  clearAnswerRevealTimer();
   clearPhoneTimer();
   audio.stopAmbient();
   audio.play("final");
@@ -1028,6 +1044,13 @@ function clearPhoneTimer() {
   updatePhoneTimer(PHONE_TIMER_SECONDS);
 }
 
+function clearAnswerRevealTimer() {
+  if (!state.answerRevealTimerId) return;
+
+  window.clearTimeout(state.answerRevealTimerId);
+  state.answerRevealTimerId = null;
+}
+
 function handleKeyboardShortcuts(event) {
   if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
 
@@ -1060,6 +1083,7 @@ function handleKeyboardShortcuts(event) {
 }
 
 function restartToStart() {
+  clearAnswerRevealTimer();
   clearPhoneTimer();
   audio.stopAmbient();
   els.resultScreen.classList.remove("is-visible");
