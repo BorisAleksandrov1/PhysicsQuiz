@@ -1,4 +1,10 @@
 const LETTERS = ["А", "Б", "В", "Г"];
+const ANSWER_SHORTCUTS = new Map([
+  ["a", 0],
+  ["s", 1],
+  ["d", 2],
+  ["f", 3]
+]);
 const TOTAL_LEVELS = 8;
 const PHONE_TIMER_SECONDS = 60;
 const SET_STORAGE_KEY = "staniFizikQuestionSetIndex";
@@ -1004,6 +1010,10 @@ function updatePhoneTimer(remaining) {
   els.phoneOverlay.style.setProperty("--phone-progress", `${progress}deg`);
 }
 
+function isPhoneTimerActive() {
+  return Boolean(state.phoneTimerId);
+}
+
 function clearPhoneTimer() {
   if (state.phoneTimerId) {
     window.clearInterval(state.phoneTimerId);
@@ -1016,6 +1026,37 @@ function clearPhoneTimer() {
   els.phoneOverlay.classList.remove("is-visible");
   els.phoneOverlay.setAttribute("aria-hidden", "true");
   updatePhoneTimer(PHONE_TIMER_SECONDS);
+}
+
+function handleKeyboardShortcuts(event) {
+  if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+
+  if (event.code === "Space" || event.key === " ") {
+    if (isPhoneTimerActive()) {
+      event.preventDefault();
+      clearPhoneTimer();
+    }
+    return;
+  }
+
+  const answerIndex = ANSWER_SHORTCUTS.get(event.key.toLowerCase());
+  if (answerIndex === undefined) return;
+
+  const gameBlocked =
+    isPhoneTimerActive() ||
+    state.selected ||
+    state.resultShown ||
+    !state.questions.length ||
+    els.startScreen.classList.contains("is-visible") ||
+    els.resultScreen.classList.contains("is-visible");
+
+  if (gameBlocked) return;
+
+  const answerButton = els.answers.querySelector(`.answer[data-index="${answerIndex}"]`);
+  if (!answerButton || answerButton.disabled || answerButton.classList.contains("hidden-answer")) return;
+
+  event.preventDefault();
+  answerButton.click();
 }
 
 function restartToStart() {
@@ -1042,3 +1083,4 @@ els.fifty.addEventListener("click", useFifty);
 els.host.addEventListener("click", useHost);
 els.phone.addEventListener("click", usePhone);
 els.soundToggle.addEventListener("click", audio.toggleMuted);
+document.addEventListener("keydown", handleKeyboardShortcuts);
