@@ -449,8 +449,6 @@ function createYouTubeAmbient(videoId) {
     sendCommand("setVolume", [playerState.volume]);
   }
 
-  ensureFrame();
-
   return {
     isEnabled: () => !playerState.disabled,
     play,
