@@ -1,5 +1,6 @@
 const LETTERS = ["А", "Б", "В", "Г"];
 const TOTAL_LEVELS = 8;
+const PHONE_TIMER_SECONDS = 60;
 const SET_STORAGE_KEY = "staniFizikQuestionSetIndex";
 const BACKGROUND_MUSIC_VIDEO_ID = "6Wi9_QKJ_8A";
 let fallbackSetIndex = 0;
@@ -331,6 +332,8 @@ const els = {
   resultProgress: document.querySelector("#resultProgress"),
   resultMessage: document.querySelector("#resultMessage"),
   resultRestartButton: document.querySelector("#resultRestartButton"),
+  phoneOverlay: document.querySelector("#phoneOverlay"),
+  phoneCountdown: document.querySelector("#phoneCountdown"),
   soundToggle: document.querySelector("#soundToggle")
 };
 
@@ -343,6 +346,8 @@ const state = {
   selected: false,
   failed: false,
   resultShown: false,
+  phoneTimerId: null,
+  phoneTimerStartedAt: 0,
   usedLifelines: {
     fifty: false,
     audience: false,
@@ -806,6 +811,7 @@ function startGame() {
   audio.unlock();
   audio.play("intro");
   audio.startAmbient();
+  clearPhoneTimer();
   state.questions = buildQuestionSet();
   state.level = 0;
   state.selected = false;
@@ -899,6 +905,7 @@ function showResult() {
   if (state.resultShown) return;
   state.resultShown = true;
 
+  clearPhoneTimer();
   audio.stopAmbient();
   audio.play("final");
   const wonAll = state.level >= TOTAL_LEVELS;
@@ -991,14 +998,46 @@ function usePhone() {
   els.phone.disabled = true;
   els.phone.classList.add("used");
 
-  const question = currentQuestion();
-  const answer = question.answers[question.correct];
-  const confidence = state.level < 5 ? "почти сигурен" : "не съм напълно сигурен, но бих заложил";
-  els.helperPanel.innerHTML = `
-    <h3>Вашият приятел казва:</h3>
-    <p>Аз съм ${confidence} на ${LETTERS[question.correct]}: ${answer}.</p>
-  `;
-  els.helperPanel.classList.add("is-visible");
+  startPhoneTimer();
+}
+
+function startPhoneTimer() {
+  clearPhoneTimer();
+
+  state.phoneTimerStartedAt = Date.now();
+  updatePhoneTimer(PHONE_TIMER_SECONDS);
+  els.phoneOverlay.classList.add("is-visible");
+  els.phoneOverlay.setAttribute("aria-hidden", "false");
+
+  state.phoneTimerId = window.setInterval(() => {
+    const elapsed = Math.floor((Date.now() - state.phoneTimerStartedAt) / 1000);
+    const remaining = Math.max(0, PHONE_TIMER_SECONDS - elapsed);
+    updatePhoneTimer(remaining);
+
+    if (remaining <= 0) {
+      clearPhoneTimer();
+    }
+  }, 250);
+}
+
+function updatePhoneTimer(remaining) {
+  const progress = ((PHONE_TIMER_SECONDS - remaining) / PHONE_TIMER_SECONDS) * 360;
+  els.phoneCountdown.textContent = String(remaining).padStart(2, "0");
+  els.phoneOverlay.style.setProperty("--phone-progress", `${progress}deg`);
+}
+
+function clearPhoneTimer() {
+  if (state.phoneTimerId) {
+    window.clearInterval(state.phoneTimerId);
+    state.phoneTimerId = null;
+  }
+
+  state.phoneTimerStartedAt = 0;
+  if (!els.phoneOverlay) return;
+
+  els.phoneOverlay.classList.remove("is-visible");
+  els.phoneOverlay.setAttribute("aria-hidden", "true");
+  updatePhoneTimer(PHONE_TIMER_SECONDS);
 }
 
 function randomBetween(min, max) {
@@ -1006,6 +1045,7 @@ function randomBetween(min, max) {
 }
 
 function restartToStart() {
+  clearPhoneTimer();
   audio.stopAmbient();
   els.resultScreen.classList.remove("is-visible");
   els.resultScreen.setAttribute("aria-hidden", "true");
