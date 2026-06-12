@@ -37,10 +37,12 @@ body {
 body {
   background: #020012;
   font-family: Arial, Helvetica, sans-serif;
+  cursor: none;
 }
 
 button {
   font: inherit;
+  cursor: none;
 }
 
 .game {
@@ -110,7 +112,7 @@ button {
     0 8px 18px rgba(0, 0, 0, 0.36);
   font-size: clamp(1rem, 1.8vw, 1.45rem);
   font-weight: 900;
-  cursor: pointer;
+  cursor: none;
 }
 
 .sound-toggle[aria-pressed="true"] {
@@ -170,13 +172,13 @@ button {
   box-shadow:
     inset 0 0 0 2px rgba(0, 0, 0, 0.28),
     0 9px 20px rgba(0, 0, 0, 0.42);
-  cursor: pointer;
+  cursor: none;
 }
 
 .lifeline:disabled,
 .lifeline.used {
   opacity: 0.34;
-  cursor: default;
+  cursor: none;
   filter: grayscale(0.8);
 }
 
@@ -334,7 +336,7 @@ button {
     inset 0 0 0 3px rgba(255, 255, 255, 0.08),
     inset 0 -14px 26px rgba(0, 0, 0, 0.35),
     0 10px 22px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
+  cursor: none;
   text-align: left;
   text-shadow: 0 2px 0 #070025;
 }
@@ -344,7 +346,7 @@ button {
 }
 
 .answer:disabled {
-  cursor: default;
+  cursor: none;
 }
 
 .answer.hidden-answer {
@@ -427,7 +429,7 @@ button {
     0 10px 22px rgba(0, 0, 0, 0.36),
     inset 0 0 0 2px rgba(255, 255, 255, 0.22);
   font-weight: 900;
-  cursor: pointer;
+  cursor: none;
   text-transform: uppercase;
 }
 
@@ -437,7 +439,7 @@ button {
 
 .pill-button:disabled {
   opacity: 0.42;
-  cursor: default;
+  cursor: none;
 }
 
 .pill-button.ghost {

@@ -13,7 +13,7 @@ const ANSWER_SHORTCUTS = new Map([
   ["д", 2],
   ["ф", 3]
 ]);
-const ANSWER_REVEAL_DELAY_MS = 900;
+const ANSWER_REVEAL_DELAY_MS = 2900;
 const TOTAL_LEVELS = 8;
 const PHONE_TIMER_SECONDS = 60;
 const SET_STORAGE_KEY = "staniFizikQuestionSetIndex";
