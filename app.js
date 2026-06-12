@@ -324,7 +324,7 @@ const els = {
   questionNumber: document.querySelector("#questionNumber"),
   helperPanel: document.querySelector("#helperPanel"),
   fifty: document.querySelector("#fiftyLifeline"),
-  audience: document.querySelector("#audienceLifeline"),
+  host: document.querySelector("#hostLifeline"),
   phone: document.querySelector("#phoneLifeline"),
   resultScreen: document.querySelector("#resultScreen"),
   resultKicker: document.querySelector("#resultKicker"),
@@ -350,7 +350,7 @@ const state = {
   phoneTimerStartedAt: 0,
   usedLifelines: {
     fifty: false,
-    audience: false,
+    host: false,
     phone: false
   }
 };
@@ -740,7 +740,7 @@ function createAudioEngine() {
       return;
     }
 
-    if (name === "lifeline" || name === "fifty" || name === "audience" || name === "phone") {
+    if (name === "lifeline" || name === "fifty" || name === "host" || name === "phone") {
       noiseHit(now, 0.26, 0.1, 1800);
       [392, 523.25, 659.25].forEach((freq, index) => {
         tone({ type: "triangle", frequency: freq, start: now + index * 0.075, duration: 0.13, gain: 0.06, release: 0.09 });
@@ -817,7 +817,7 @@ function startGame() {
   state.selected = false;
   state.failed = false;
   state.resultShown = false;
-  state.usedLifelines = { fifty: false, audience: false, phone: false };
+  state.usedLifelines = { fifty: false, host: false, phone: false };
   els.startScreen.classList.remove("is-visible");
   els.resultScreen.classList.remove("is-visible");
   els.resultScreen.setAttribute("aria-hidden", "true");
@@ -936,7 +936,7 @@ function getResultMessage() {
 }
 
 function resetLifelines() {
-  [els.fifty, els.audience, els.phone].forEach((button) => {
+  [els.fifty, els.host, els.phone].forEach((button) => {
     button.disabled = false;
     button.classList.remove("used");
   });
@@ -959,35 +959,24 @@ function useFifty() {
   });
 }
 
-function useAudience() {
-  if (state.usedLifelines.audience || state.selected) return;
-  audio.play("audience");
+function useHost() {
+  if (state.usedLifelines.host || state.selected) return;
+  audio.play("host");
 
-  state.usedLifelines.audience = true;
-  els.audience.disabled = true;
-  els.audience.classList.add("used");
+  state.usedLifelines.host = true;
+  els.host.disabled = true;
+  els.host.classList.add("used");
 
   const question = currentQuestion();
-  const correctPercent = randomBetween(55, 82);
-  let remaining = 100 - correctPercent;
-  const values = [0, 0, 0, 0];
-  values[question.correct] = correctPercent;
+  const title = document.createElement("h3");
+  const message = document.createElement("p");
 
-  const wrong = [0, 1, 2, 3].filter((index) => index !== question.correct);
-  wrong.forEach((index, order) => {
-    if (order === wrong.length - 1) {
-      values[index] = remaining;
-    } else {
-      const value = randomBetween(3, Math.max(4, remaining - 4));
-      values[index] = value;
-      remaining -= value;
-    }
-  });
+  title.textContent = "Водещият казва:";
+  message.textContent = `Бих насочил вниманието си към ${LETTERS[question.correct]}: ${question.answers[question.correct]}.`;
 
-  values.forEach((value, index) => {
-    const text = els.answers.querySelector(`[data-index="${index}"] .answer-text`);
-    text.insertAdjacentHTML("beforeend", ` <span class="poll-percent">${value}%</span>`);
-  });
+  els.helperPanel.innerHTML = "";
+  els.helperPanel.append(title, message);
+  els.helperPanel.classList.add("is-visible");
 }
 
 function usePhone() {
@@ -1040,10 +1029,6 @@ function clearPhoneTimer() {
   updatePhoneTimer(PHONE_TIMER_SECONDS);
 }
 
-function randomBetween(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 function restartToStart() {
   clearPhoneTimer();
   audio.stopAmbient();
@@ -1065,6 +1050,6 @@ els.continueButton.addEventListener("click", continueGame);
 els.newGameButton.addEventListener("click", restartToStart);
 els.resultRestartButton.addEventListener("click", restartToStart);
 els.fifty.addEventListener("click", useFifty);
-els.audience.addEventListener("click", useAudience);
+els.host.addEventListener("click", useHost);
 els.phone.addEventListener("click", usePhone);
 els.soundToggle.addEventListener("click", audio.toggleMuted);

@@ -19,6 +19,13 @@
   box-sizing: border-box;
 }
 
+*,
+*::before,
+*::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 html,
 body {
   width: 100%;
@@ -166,10 +173,6 @@ button {
   cursor: pointer;
 }
 
-.lifeline:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
 .lifeline:disabled,
 .lifeline.used {
   opacity: 0.34;
@@ -185,22 +188,56 @@ button {
   text-shadow: 0 2px 0 #000;
 }
 
-.audience-icon {
-  display: flex;
-  align-items: end;
-  gap: 5px;
-}
-
-.audience-icon i {
+.host-icon {
+  position: relative;
+  width: 48px;
+  height: 38px;
   display: block;
-  width: 16px;
-  height: 22px;
-  border: 3px solid #fff;
-  border-radius: 999px 999px 6px 6px;
 }
 
-.audience-icon i:nth-child(2) {
-  height: 30px;
+.host-icon::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 1px;
+  width: 17px;
+  aspect-ratio: 1;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.host-icon::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  bottom: 0;
+  width: 30px;
+  height: 17px;
+  border: 3px solid #fff;
+  border-radius: 18px 18px 6px 6px;
+}
+
+.host-icon i {
+  position: absolute;
+  right: 4px;
+  top: 6px;
+  width: 9px;
+  height: 24px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.host-icon i::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 17px;
+  height: 3px;
+  background: #fff;
+  transform: translateX(-50%);
 }
 
 .phone-icon {
@@ -388,7 +425,6 @@ button {
 }
 
 .pill-button:hover:not(:disabled) {
-  transform: translateY(-1px);
   filter: brightness(1.08);
 }
 
@@ -440,37 +476,6 @@ button {
   line-height: 1.35;
 }
 
-.poll-row {
-  display: grid;
-  grid-template-columns: 32px 1fr 46px;
-  align-items: center;
-  gap: 10px;
-  margin: 8px 0;
-  color: #fff;
-  font-weight: 900;
-}
-
-.poll-percent {
-  float: right;
-  margin-left: 10px;
-  color: var(--gold);
-  font-weight: 900;
-}
-
-.poll-track {
-  height: 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.poll-track i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--gold), var(--gold-2));
-}
-
 .phone-overlay {
   --phone-progress: 0deg;
   position: absolute;
@@ -486,7 +491,6 @@ button {
     radial-gradient(circle at 50% 46%, rgba(147, 236, 255, 0.13), transparent 23%),
     rgba(0, 0, 0, 0.76);
   backdrop-filter: blur(7px);
-  transition: opacity 220ms ease, visibility 220ms ease;
 }
 
 .phone-overlay.is-visible {
