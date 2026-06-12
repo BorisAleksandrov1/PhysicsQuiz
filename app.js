@@ -1,5 +1,4 @@
 const LETTERS = ["А", "Б", "В", "Г"];
-const TIME_LIMIT = 60;
 const TOTAL_LEVELS = 15;
 
 const RAW_QUESTIONS = `
@@ -187,10 +186,6 @@ const els = {
   answers: document.querySelector("#answers"),
   continueButton: document.querySelector("#continueButton"),
   newGameButton: document.querySelector("#newGameButton"),
-  timeLeft: document.querySelector("#timeLeft"),
-  timer: document.querySelector("#timer"),
-  timerRing: document.querySelector(".timer-ring"),
-  ladder: document.querySelector("#levelLadder"),
   questionNumber: document.querySelector("#questionNumber"),
   helperPanel: document.querySelector("#helperPanel"),
   fifty: document.querySelector("#fiftyLifeline"),
@@ -214,8 +209,6 @@ const state = {
   level: 0,
   selected: false,
   failed: false,
-  timeLeft: TIME_LIMIT,
-  timerId: null,
   usedLifelines: {
     fifty: false,
     audience: false,
@@ -459,16 +452,6 @@ function createAudioEngine() {
       return;
     }
 
-    if (name === "tick") {
-      tone({ type: "square", frequency: 880, start: now, duration: 0.025, gain: 0.035, release: 0.025 });
-      return;
-    }
-
-    if (name === "warning") {
-      tone({ type: "square", frequency: 1174.66, start: now, duration: 0.045, gain: 0.06, release: 0.035 });
-      return;
-    }
-
     if (name === "select") {
       tone({ type: "triangle", frequency: 220, start: now, duration: 0.08, gain: 0.09, release: 0.05 });
       tone({ type: "triangle", frequency: 329.63, start: now + 0.08, duration: 0.1, gain: 0.075, release: 0.06 });
@@ -596,26 +579,6 @@ function buildQuestionSet() {
   return selected.slice(0, 15);
 }
 
-function renderLadder() {
-  els.ladder.innerHTML = Array.from({ length: TOTAL_LEVELS }, (_, index) => {
-    const level = index + 1;
-    return `
-      <li data-level="${level}">
-        <span class="level-number">${level}</span>
-        <span class="level-label">Въпрос</span>
-      </li>
-    `;
-  }).join("");
-}
-
-function updateLadder() {
-  [...els.ladder.querySelectorAll("li")].forEach((row) => {
-    const level = Number(row.dataset.level);
-    row.classList.toggle("active", level === state.level + 1 && !state.failed);
-    row.classList.toggle("passed", level <= state.level);
-  });
-}
-
 function startGame() {
   audio.unlock();
   audio.play("intro");
@@ -647,8 +610,6 @@ function showQuestion() {
   const question = currentQuestion();
   state.selected = false;
   state.failed = false;
-  state.timeLeft = TIME_LIMIT;
-  clearInterval(state.timerId);
 
   els.helperPanel.classList.remove("is-visible");
   els.helperPanel.innerHTML = "";
@@ -668,28 +629,7 @@ function showQuestion() {
     button.addEventListener("click", () => selectAnswer(Number(button.dataset.index)));
   });
 
-  updateLadder();
-  updateTimer();
   audio.play("question");
-  state.timerId = setInterval(tick, 1000);
-}
-
-function tick() {
-  state.timeLeft -= 1;
-  updateTimer();
-  audio.play(state.timeLeft <= 10 ? "warning" : "tick");
-
-  if (state.timeLeft <= 0) {
-    selectAnswer(null);
-  }
-}
-
-function updateTimer() {
-  els.timeLeft.textContent = Math.max(0, state.timeLeft);
-  const progress = Math.max(0, (state.timeLeft / TIME_LIMIT) * 100);
-  els.timerRing.style.setProperty("--progress", `${progress}%`);
-  els.timer.classList.toggle("is-warning", state.timeLeft <= 10);
-  audio.setTension(1 - progress / 100);
 }
 
 function selectAnswer(index) {
@@ -698,7 +638,6 @@ function selectAnswer(index) {
   const question = currentQuestion();
   const isCorrect = index === question.correct;
   state.selected = true;
-  clearInterval(state.timerId);
   audio.play("select");
 
   els.answers.querySelectorAll(".answer").forEach((button) => {
@@ -719,7 +658,6 @@ function selectAnswer(index) {
   }
 
   els.continueButton.disabled = false;
-  updateLadder();
 }
 
 function continueGame() {
@@ -840,7 +778,6 @@ function randomBetween(min, max) {
 }
 
 function restartToStart() {
-  clearInterval(state.timerId);
   audio.stopAmbient();
   els.resultScreen.classList.remove("is-visible");
   els.resultScreen.setAttribute("aria-hidden", "true");
@@ -848,18 +785,11 @@ function restartToStart() {
   state.level = 0;
   state.selected = false;
   state.failed = false;
-  state.timeLeft = TIME_LIMIT;
   els.questionText.textContent = "Натисни „Играй“, за да започнеш.";
   els.answers.innerHTML = "";
   els.helperPanel.classList.remove("is-visible");
   els.continueButton.disabled = true;
-  updateTimer();
-  updateLadder();
 }
-
-renderLadder();
-updateLadder();
-updateTimer();
 
 els.startButton.addEventListener("click", startGame);
 els.continueButton.addEventListener("click", continueGame);
