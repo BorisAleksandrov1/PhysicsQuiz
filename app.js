@@ -1,6 +1,7 @@
 const LETTERS = ["А", "Б", "В", "Г"];
 const TOTAL_LEVELS = 8;
 const SET_STORAGE_KEY = "staniFizikQuestionSetIndex";
+const BACKGROUND_MUSIC_VIDEO_ID = "6Wi9_QKJ_8A";
 let fallbackSetIndex = 0;
 
 const QUESTION_SETS = [
@@ -349,8 +350,119 @@ const state = {
   }
 };
 
+function createYouTubeAmbient(videoId) {
+  const safeVideoId = String(videoId || "").trim();
+  const playerState = {
+    frame: null,
+    pendingPlay: false,
+    requestedPlaying: false,
+    muted: false,
+    disabled: !safeVideoId,
+    volume: 30
+  };
+
+  function ensureContainer() {
+    let container = document.querySelector("#youtubeBackgroundMusic");
+    if (container) return container;
+
+    container = document.createElement("div");
+    container.id = "youtubeBackgroundMusic";
+    container.className = "youtube-background";
+    container.setAttribute("aria-hidden", "true");
+    document.body.appendChild(container);
+    return container;
+  }
+
+  function ensureFrame() {
+    if (playerState.disabled) return;
+    if (playerState.frame) return;
+
+    const frame = document.createElement("iframe");
+    const params = new URLSearchParams({
+      autoplay: "0",
+      controls: "0",
+      disablekb: "1",
+      enablejsapi: "1",
+      fs: "0",
+      iv_load_policy: "3",
+      loop: "1",
+      modestbranding: "1",
+      playsinline: "1",
+      playlist: safeVideoId,
+      rel: "0",
+      origin: window.location.origin
+    });
+
+    frame.title = "Фонова музика";
+    frame.allow = "autoplay; encrypted-media";
+    frame.referrerPolicy = "strict-origin-when-cross-origin";
+    frame.src = `https://www.youtube.com/embed/${encodeURIComponent(safeVideoId)}?${params.toString()}`;
+    frame.addEventListener("load", () => {
+      sendCommand("setVolume", [playerState.volume]);
+      sendCommand(playerState.muted ? "mute" : "unMute");
+      if (playerState.pendingPlay) sendCommand("playVideo");
+    });
+
+    ensureContainer().appendChild(frame);
+    playerState.frame = frame;
+  }
+
+  function sendCommand(func, args = []) {
+    if (!playerState.frame || !playerState.frame.contentWindow) return;
+
+    playerState.frame.contentWindow.postMessage(
+      JSON.stringify({
+        event: "command",
+        func,
+        args
+      }),
+      "https://www.youtube.com"
+    );
+  }
+
+  function play() {
+    if (playerState.disabled) return;
+
+    playerState.requestedPlaying = true;
+    playerState.pendingPlay = true;
+    ensureFrame();
+    sendCommand("setVolume", [playerState.volume]);
+    sendCommand(playerState.muted ? "mute" : "unMute");
+    sendCommand("playVideo");
+    playerState.pendingPlay = false;
+  }
+
+  function stop() {
+    playerState.requestedPlaying = false;
+    playerState.pendingPlay = false;
+    sendCommand("pauseVideo");
+  }
+
+  function setMuted(nextMuted) {
+    playerState.muted = Boolean(nextMuted);
+    sendCommand(playerState.muted ? "mute" : "unMute");
+  }
+
+  function setTension(amount) {
+    const tension = Math.max(0, Math.min(1, amount));
+    playerState.volume = Math.round(28 + tension * tension * 18);
+    sendCommand("setVolume", [playerState.volume]);
+  }
+
+  ensureFrame();
+
+  return {
+    isEnabled: () => !playerState.disabled,
+    play,
+    stop,
+    setMuted,
+    setTension
+  };
+}
+
 function createAudioEngine() {
   const external = window.STANI_FIZIK_AUDIO || {};
+  const youtubeAmbient = createYouTubeAmbient(BACKGROUND_MUSIC_VIDEO_ID);
   let ctx = null;
   let master = null;
   let muted = false;
@@ -373,6 +485,8 @@ function createAudioEngine() {
   function setMuted(nextMuted) {
     muted = nextMuted;
     if (master) master.gain.setTargetAtTime(muted ? 0 : 0.78, ctx.currentTime, 0.03);
+    youtubeAmbient.setMuted(muted);
+    if (!muted && ambient && ambient.youtube) youtubeAmbient.play();
     if (els.soundToggle) {
       els.soundToggle.setAttribute("aria-pressed", String(muted));
       els.soundToggle.title = muted ? "Пусни звука" : "Спри звука";
@@ -430,6 +544,13 @@ function createAudioEngine() {
       return;
     }
 
+    if (youtubeAmbient.isEnabled()) {
+      ambient = { youtube: true };
+      youtubeAmbient.play();
+      setTension(0);
+      return;
+    }
+
     const base = ctx.currentTime;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, base);
@@ -479,6 +600,11 @@ function createAudioEngine() {
     const tension = Math.max(0, Math.min(1, amount));
     const shaped = tension * tension;
 
+    if (ambient.youtube) {
+      youtubeAmbient.setTension(tension);
+      return;
+    }
+
     if (ambient.external) {
       if (ambient.element) {
         ambient.element.volume = 0.3 + shaped * 0.4;
@@ -499,6 +625,11 @@ function createAudioEngine() {
   function stopAmbient() {
     stopFile("ambient");
     if (!ambient) return;
+    if (ambient.youtube) {
+      youtubeAmbient.stop();
+      ambient = null;
+      return;
+    }
     if (ambient.external) {
       ambient = null;
       return;
