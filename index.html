@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Кой иска да стане физик?</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game" id="game">
+      <div class="science-pattern" aria-hidden="true"></div>
+      <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" title="Звук">♪</button>
+
+      <section class="lifelines" aria-label="Жокери">
+        <button class="lifeline" id="audienceLifeline" type="button" title="Помощ от публиката">
+          <span class="audience-icon" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <span class="sr-only">Помощ от публиката</span>
+        </button>
+        <button class="lifeline lifeline-text" id="fiftyLifeline" type="button" title="50 на 50">50:50</button>
+        <button class="lifeline" id="phoneLifeline" type="button" title="Обади се на приятел">
+          <span class="phone-icon" aria-hidden="true"></span>
+          <span class="sr-only">Обади се на приятел</span>
+        </button>
+      </section>
+
+      <section class="timer" id="timer" aria-label="Оставащо време">
+        <div class="timer-ring">
+          <div class="timer-core">
+            <strong id="timeLeft">60</strong>
+            <span>сек</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="brand-zone" aria-label="Лого">
+        <img class="brand-logo" src="assets/stani-fizik-logo.png" alt="Стани физик" />
+      </section>
+
+      <aside class="ladder" aria-label="Нива">
+        <ol id="moneyLadder"></ol>
+      </aside>
+
+      <section class="question-zone" aria-live="polite">
+        <div class="question-frame">
+          <p id="questionText">Натисни „Играй“, за да започнеш.</p>
+        </div>
+
+        <div class="answers" id="answers"></div>
+
+        <div class="center-badge" id="questionNumber">1</div>
+        <div class="helper-panel" id="helperPanel" aria-live="polite"></div>
+
+        <div class="actions">
+          <button class="pill-button ghost" id="newGameButton" type="button">Нова игра</button>
+          <button class="pill-button" id="continueButton" type="button" disabled>Продължи</button>
+        </div>
+      </section>
+
+      <section class="start-screen is-visible" id="startScreen">
+        <div class="start-card">
+          <img src="assets/stani-fizik-logo.png" alt="Стани физик" />
+          <h1>Кой иска да стане физик?</h1>
+          <button class="pill-button start-button" id="startButton" type="button">Играй</button>
+        </div>
+      </section>
+
+      <section class="result-screen" id="resultScreen" aria-hidden="true">
+        <div class="result-card">
+          <img src="assets/stani-fizik-logo.png" alt="" aria-hidden="true" />
+          <p id="resultKicker">Поздравления</p>
+          <h2 id="resultTitle">Край на играта</h2>
+          <strong id="resultPrize">€ 0</strong>
+          <p id="resultMessage"></p>
+          <button class="pill-button start-button" id="resultRestartButton" type="button">Нова игра</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="assets/audio/audio-config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
