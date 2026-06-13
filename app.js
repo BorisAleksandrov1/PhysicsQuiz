@@ -4,6 +4,10 @@ const ANSWER_SHORTCUTS = new Map([
   ["KeyS", 1],
   ["KeyD", 2],
   ["KeyF", 3],
+  ["65", 0],
+  ["83", 1],
+  ["68", 2],
+  ["70", 3],
   ["a", 0],
   ["s", 1],
   ["d", 2],
@@ -20,6 +24,12 @@ const LIFELINE_SHORTCUTS = new Map([
   ["Numpad1", "host"],
   ["Numpad2", "fifty"],
   ["Numpad3", "phone"],
+  ["49", "host"],
+  ["50", "fifty"],
+  ["51", "phone"],
+  ["97", "host"],
+  ["98", "fifty"],
+  ["99", "phone"],
   ["1", "host"],
   ["2", "fifty"],
   ["3", "phone"]
@@ -426,6 +436,8 @@ function createYouTubeAmbient(videoId) {
     });
 
     frame.title = "Фонова музика";
+    frame.tabIndex = -1;
+    frame.setAttribute("tabindex", "-1");
     frame.allow = "autoplay; encrypted-media";
     frame.referrerPolicy = "strict-origin-when-cross-origin";
     frame.src = `https://www.youtube.com/embed/${encodeURIComponent(safeVideoId)}?${params.toString()}`;
@@ -433,6 +445,8 @@ function createYouTubeAmbient(videoId) {
       sendCommand("setVolume", [playerState.volume]);
       sendCommand(playerState.muted ? "mute" : "unMute");
       if (playerState.pendingPlay) sendCommand("playVideo");
+      frame.blur();
+      window.focus();
     });
 
     ensureContainer().appendChild(frame);
@@ -1100,6 +1114,22 @@ function resetCurrentGame() {
   startGameAtSet(setIndex);
 }
 
+function getShortcutValue(map, event) {
+  const candidates = [
+    event.code,
+    event.key,
+    event.key ? event.key.toLowerCase() : "",
+    event.which ? String(event.which) : "",
+    event.keyCode ? String(event.keyCode) : ""
+  ];
+
+  for (const candidate of candidates) {
+    if (map.has(candidate)) return map.get(candidate);
+  }
+
+  return undefined;
+}
+
 function useLifelineShortcut(lifeline) {
   const gameBlocked =
     isPhoneTimerActive() ||
@@ -1147,15 +1177,16 @@ function handleKeyboardShortcuts(event) {
     return;
   }
 
-  const lifeline = LIFELINE_SHORTCUTS.get(event.code) ?? LIFELINE_SHORTCUTS.get(event.key);
+  const lifeline = getShortcutValue(LIFELINE_SHORTCUTS, event);
   if (lifeline !== undefined) {
     if (useLifelineShortcut(lifeline)) {
       event.preventDefault();
+      event.stopPropagation();
     }
     return;
   }
 
-  const answerIndex = ANSWER_SHORTCUTS.get(event.code) ?? ANSWER_SHORTCUTS.get(event.key.toLowerCase());
+  const answerIndex = getShortcutValue(ANSWER_SHORTCUTS, event);
   if (answerIndex === undefined) return;
 
   const gameBlocked =
@@ -1172,6 +1203,7 @@ function handleKeyboardShortcuts(event) {
   if (!answerButton || answerButton.disabled || answerButton.classList.contains("hidden-answer")) return;
 
   event.preventDefault();
+  event.stopPropagation();
   answerButton.click();
 }
 
@@ -1200,4 +1232,4 @@ els.fifty.addEventListener("click", useFifty);
 els.host.addEventListener("click", useHost);
 els.phone.addEventListener("click", usePhone);
 els.soundToggle.addEventListener("click", audio.toggleMuted);
-document.addEventListener("keydown", handleKeyboardShortcuts);
+window.addEventListener("keydown", handleKeyboardShortcuts, true);
