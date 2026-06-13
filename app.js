@@ -13,6 +13,17 @@ const ANSWER_SHORTCUTS = new Map([
   ["д", 2],
   ["ф", 3]
 ]);
+const LIFELINE_SHORTCUTS = new Map([
+  ["Digit1", "host"],
+  ["Digit2", "fifty"],
+  ["Digit3", "phone"],
+  ["Numpad1", "host"],
+  ["Numpad2", "fifty"],
+  ["Numpad3", "phone"],
+  ["1", "host"],
+  ["2", "fifty"],
+  ["3", "phone"]
+]);
 const ANSWER_REVEAL_DELAY_MS = 2900;
 const TOTAL_LEVELS = 8;
 const PHONE_TIMER_SECONDS = 60;
@@ -1089,6 +1100,30 @@ function resetCurrentGame() {
   startGameAtSet(setIndex);
 }
 
+function useLifelineShortcut(lifeline) {
+  const gameBlocked =
+    isPhoneTimerActive() ||
+    state.selected ||
+    state.resultShown ||
+    !state.questions.length ||
+    isStartVisible() ||
+    isResultVisible();
+
+  if (gameBlocked) return false;
+
+  const actions = {
+    host: useHost,
+    fifty: useFifty,
+    phone: usePhone
+  };
+
+  const action = actions[lifeline];
+  if (!action) return false;
+
+  action();
+  return true;
+}
+
 function handleKeyboardShortcuts(event) {
   if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
 
@@ -1109,6 +1144,14 @@ function handleKeyboardShortcuts(event) {
   if (event.code === "KeyR") {
     event.preventDefault();
     resetCurrentGame();
+    return;
+  }
+
+  const lifeline = LIFELINE_SHORTCUTS.get(event.code) ?? LIFELINE_SHORTCUTS.get(event.key);
+  if (lifeline !== undefined) {
+    if (useLifelineShortcut(lifeline)) {
+      event.preventDefault();
+    }
     return;
   }
 
